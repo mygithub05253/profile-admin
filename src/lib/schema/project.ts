@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_IMAGE_BYTES, MAX_IMAGES_PER_SAVE } from "../github/config";
 
 // content-hub velite.config.ts projects 컬렉션과 정확히 일치하는 스키마 (FR-M18)
 // + content-hub scripts/validate_frontmatter.py의 P-1·P-2 규칙 클라이언트 측 반영
@@ -37,9 +38,27 @@ export const projectFrontmatterSchema = z
 
 export type ProjectFrontmatter = z.infer<typeof projectFrontmatterSchema>;
 
+// FR-M22 이미지 업로드 — 클라이언트가 리사이즈·WebP 압축까지 마친 base64를 전달
+// (encoding="base64" 그대로 atomic-commit에 넘김, §22 R-3 크기 가드 서버 재검증)
+const FILENAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*\.webp$/;
+
+function base64ByteLength(base64: string): number {
+  const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+  return Math.floor((base64.length * 3) / 4) - padding;
+}
+
+export const projectImageUploadSchema = z.object({
+  filename: z.string().regex(FILENAME_PATTERN, "파일명은 소문자·숫자·하이픈 조합의 .webp만 허용됩니다"),
+  content: z.string().refine((c) => base64ByteLength(c) <= MAX_IMAGE_BYTES, {
+    message: `이미지는 장당 ${MAX_IMAGE_BYTES / 1024 / 1024}MB를 초과할 수 없습니다`,
+  }),
+});
+export type ProjectImageUpload = z.infer<typeof projectImageUploadSchema>;
+
 export const projectSaveSchema = z.object({
   frontmatter: projectFrontmatterSchema,
   body: z.string(),
+  images: z.array(projectImageUploadSchema).max(MAX_IMAGES_PER_SAVE).optional(),
   sha: z.string().optional(), // 수정 시 낙관적 잠금(FR-M21), 신규 생성 시 없음
 });
 

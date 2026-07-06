@@ -17,8 +17,8 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const json = await request.json();
-    const { frontmatter, body } = projectSaveSchema.parse(json);
-    const { prUrl } = await createProject(frontmatter, body);
+    const { frontmatter, body, images } = projectSaveSchema.parse(json);
+    const { prUrl } = await createProject(frontmatter, body, images);
     return NextResponse.json({ slug: frontmatter.slug, prUrl }, { status: 201 });
   } catch (err) {
     return toErrorResponse(err);

@@ -5,7 +5,8 @@ import { sleep } from "../sleep";
 
 export interface FileUpsert {
   path: string;
-  content: string; // UTF-8 원문 (base64 인코딩은 내부에서 처리)
+  content: string; // encoding="utf-8"(기본)면 원문 텍스트, "base64"면 이미 인코딩된 바이너리
+  encoding?: "utf-8" | "base64"; // FR-M22: 이미지(webp)는 base64로 그대로 blob 생성
 }
 
 export interface CommitAndPrOptions {
@@ -69,12 +70,9 @@ async function attemptCommitAndPr(
 
   const upsertItems = await Promise.all(
     upserts.map(async (file) => {
-      const { data: blob } = await octokit.git.createBlob({
-        owner,
-        repo,
-        content: Buffer.from(file.content, "utf-8").toString("base64"),
-        encoding: "base64",
-      });
+      const content =
+        file.encoding === "base64" ? file.content : Buffer.from(file.content, "utf-8").toString("base64");
+      const { data: blob } = await octokit.git.createBlob({ owner, repo, content, encoding: "base64" });
       return { path: file.path, mode: "100644" as const, type: "blob" as const, sha: blob.sha };
     })
   );

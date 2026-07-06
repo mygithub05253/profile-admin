@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import {
@@ -9,6 +9,7 @@ import {
   type ProjectFrontmatter,
 } from "@/lib/schema/project";
 import { DeleteProjectButton } from "./DeleteProjectButton";
+import { ImageDropzone, type StagedImage } from "./ImageDropzone";
 
 interface ProjectFormProps {
   mode: "create" | "edit";
@@ -50,6 +51,8 @@ export function ProjectForm({
 }: ProjectFormProps) {
   const router = useRouter();
   const [body, setBody] = useState(initialBody);
+  const [images, setImages] = useState<StagedImage[]>([]);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
   const [status, setStatus] = useState<"idle" | "validating" | "committing" | "done" | "error">("idle");
   const [serverError, setServerError] = useState<string | null>(null);
   const [prUrl, setPrUrl] = useState<string | null>(null);
@@ -82,6 +85,28 @@ export function ProjectForm({
   });
 
   const scope = watch("scope");
+  const slugValue = watch("slug");
+
+  // FR-M22: 이미지 드롭존의 "본문에 삽입" — textarea 커서 위치에 마크다운 스니펫 삽입
+  function insertAtCursor(snippet: string) {
+    const el = bodyRef.current;
+    if (!el) {
+      setBody((prev) => `${prev}\n${snippet}\n`);
+      return;
+    }
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    setBody((prev) => `${prev.slice(0, start)}${snippet}${prev.slice(end)}`);
+    requestAnimationFrame(() => {
+      el.focus();
+      const pos = start + snippet.length;
+      el.setSelectionRange(pos, pos);
+    });
+  }
+
+  function imagesForSave() {
+    return images.map(({ filename, content }) => ({ filename, content }));
+  }
 
   const onSubmit = handleSubmit(async (values) => {
     setServerError(null);
@@ -131,8 +156,8 @@ export function ProjectForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           mode === "create"
-            ? { frontmatter: parsed.data, body }
-            : { frontmatter: parsed.data, body, sha: initialSha }
+            ? { frontmatter: parsed.data, body, images: imagesForSave() }
+            : { frontmatter: parsed.data, body, sha: initialSha, images: imagesForSave() }
         ),
       });
       const json = await res.json();
@@ -273,7 +298,7 @@ export function ProjectForm({
       <Field
         label="thumbnail 경로"
         error={errors.thumbnail?.message}
-        hint="이미지 업로드 기능은 준비 중이에요 — 지금은 content-hub에 미리 올려둔 이미지의 경로만 입력할 수 있어요"
+        hint="아래 이미지 업로드에서 '경로 복사'로 붙여넣으세요 — 슬래시(/)로 시작하지 않아야 해요 (content-hub 검증 규칙)"
       >
         <input {...register("thumbnail")} className={inputClass} placeholder="예: assets/automation-ecosystem/thumb.webp" />
       </Field>
@@ -299,11 +324,16 @@ export function ProjectForm({
 
       <Field label="MDX 본문">
         <textarea
+          ref={bodyRef}
           value={body}
           onChange={(e) => setBody(e.target.value)}
           rows={12}
           className={`${inputClass} font-mono text-xs`}
         />
+      </Field>
+
+      <Field label="이미지 업로드">
+        <ImageDropzone slug={slugValue} images={images} onChange={setImages} onInsert={insertAtCursor} />
       </Field>
 
       <div className="flex items-center gap-3 border-t border-black/10 pt-4 dark:border-white/15">

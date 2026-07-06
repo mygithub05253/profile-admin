@@ -1,8 +1,8 @@
 import { getOctokit } from "./github/client";
-import { CONTENT_HUB_OWNER, CONTENT_HUB_REPO, PROJECTS_DIR } from "./github/config";
-import { commitFilesAndOpenPR } from "./github/atomic-commit";
+import { ASSETS_DIR, CONTENT_HUB_OWNER, CONTENT_HUB_REPO, PROJECTS_DIR } from "./github/config";
+import { commitFilesAndOpenPR, type FileUpsert } from "./github/atomic-commit";
 import { parseFrontmatter, stringifyFrontmatter } from "./frontmatter";
-import type { ProjectFrontmatter, ProjectListItem } from "./schema/project";
+import type { ProjectFrontmatter, ProjectImageUpload, ProjectListItem } from "./schema/project";
 import { NotFoundError, ShaConflictError, SlugConflictError, SlugImmutableError } from "./errors";
 import { sleep } from "./sleep";
 
@@ -14,6 +14,15 @@ export interface ProjectRecord {
 
 function projectPath(slug: string): string {
   return `${PROJECTS_DIR}/${slug}.mdx`;
+}
+
+// FR-M22: assets/{slug}/{filename} — 본문·썸네일과 같은 커밋에 포함(§22 R-3)
+function imageUpserts(slug: string, images: ProjectImageUpload[] = []): FileUpsert[] {
+  return images.map((image) => ({
+    path: `${ASSETS_DIR}/${slug}/${image.filename}`,
+    content: image.content,
+    encoding: "base64" as const,
+  }));
 }
 
 // content-hub projects/{slug}.mdx 단건 조회 (FR-M17 §6.2 GET)
@@ -83,7 +92,11 @@ export interface SaveProjectResult {
 }
 
 // 신규 생성 (FR-M17 §6.2 POST /api/projects)
-export async function createProject(frontmatter: ProjectFrontmatter, body: string): Promise<SaveProjectResult> {
+export async function createProject(
+  frontmatter: ProjectFrontmatter,
+  body: string,
+  images: ProjectImageUpload[] = []
+): Promise<SaveProjectResult> {
   const existing = await getProject(frontmatter.slug);
   if (existing) {
     throw new SlugConflictError(`slug '${frontmatter.slug}'가 이미 존재합니다`);
@@ -92,7 +105,7 @@ export async function createProject(frontmatter: ProjectFrontmatter, body: strin
   const branch = `admin/${frontmatter.slug}-${Date.now()}`;
   const { prUrl } = await commitFilesAndOpenPR({
     branch,
-    upserts: [{ path: projectPath(frontmatter.slug), content: raw }],
+    upserts: [{ path: projectPath(frontmatter.slug), content: raw }, ...imageUpserts(frontmatter.slug, images)],
     commitMessage: `admin: create project ${frontmatter.slug}`,
     prTitle: `admin: create project ${frontmatter.slug}`,
     prBody: "profile-admin에서 자동 생성된 PR입니다. CI(frontmatter 검증) 통과 시 자동 병합됩니다.",
@@ -105,7 +118,8 @@ export async function updateProject(
   slug: string,
   frontmatter: ProjectFrontmatter,
   body: string,
-  expectedSha: string
+  expectedSha: string,
+  images: ProjectImageUpload[] = []
 ): Promise<SaveProjectResult> {
   if (frontmatter.slug !== slug) {
     throw new SlugImmutableError("slug는 수정할 수 없습니다 (rename은 삭제 후 재생성)");
@@ -116,7 +130,7 @@ export async function updateProject(
   const branch = `admin/${slug}-${Date.now()}`;
   const { prUrl } = await commitFilesAndOpenPR({
     branch,
-    upserts: [{ path: projectPath(slug), content: raw }],
+    upserts: [{ path: projectPath(slug), content: raw }, ...imageUpserts(slug, images)],
     commitMessage: `admin: update project ${slug}`,
     prTitle: `admin: update project ${slug}`,
     prBody: "profile-admin에서 자동 생성된 PR입니다. CI(frontmatter 검증) 통과 시 자동 병합됩니다.",
