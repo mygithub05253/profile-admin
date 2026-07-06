@@ -39,7 +39,9 @@ export const stackItemSchema = z
     icon: z.string().optional(),
     emoji: z.string().optional(),
     category: stackCategoryEnum,
-    featured: z.boolean(),
+    // content-hub data/stacks.yml 실데이터 대부분이 featured 키를 생략함(false 취급) —
+    // my-profile-site velite.config.ts와 동일하게 default(false)로 맞춰야 파싱이 깨지지 않는다.
+    featured: z.boolean().default(false),
   })
   .refine((item) => Boolean(item.icon || item.emoji), {
     message: "icon(simple-icons 슬러그) 또는 emoji 중 하나는 필수입니다",
