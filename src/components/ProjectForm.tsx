@@ -177,16 +177,32 @@ export function ProjectForm({
         </div>
       )}
 
-      <Field label="제목" error={errors.title?.message}>
-        <input {...register("title")} className={inputClass} />
+      <Field label="제목" error={errors.title?.message} hint="포트폴리오 카드에 표시될 프로젝트 이름이에요">
+        <input {...register("title")} className={inputClass} placeholder="예: 자동화 생태계 (my-profile-site)" />
       </Field>
 
-      <Field label="slug" error={errors.slug?.message}>
-        <input {...register("slug")} disabled={mode === "edit"} className={`${inputClass} disabled:opacity-50`} />
-        {mode === "edit" && <p className="mt-1 text-xs text-black/40 dark:text-white/40">slug는 저장 후 수정할 수 없습니다</p>}
+      <Field
+        label="slug"
+        error={errors.slug?.message}
+        hint={
+          mode === "edit"
+            ? "slug는 저장 후 수정할 수 없습니다"
+            : "영문 소문자와 하이픈만 사용하세요 — /projects/이 값으로 URL이 만들어지고 저장 후에는 수정할 수 없어요"
+        }
+      >
+        <input
+          {...register("slug")}
+          disabled={mode === "edit"}
+          className={`${inputClass} disabled:opacity-50`}
+          placeholder="예: automation-ecosystem"
+        />
       </Field>
 
-      <Field label="category" error={errors.category?.message as string | undefined}>
+      <Field
+        label="category"
+        error={errors.category?.message as string | undefined}
+        hint="해당하는 분야를 모두 선택하세요 (복수 선택 가능)"
+      >
         <div className="flex flex-wrap gap-3">
           {CATEGORY_OPTIONS.map((option) => (
             <label key={option} className="flex items-center gap-1.5 text-sm">
@@ -197,41 +213,53 @@ export function ProjectForm({
         </div>
       </Field>
 
-      <Field label="scope" error={errors.scope?.message}>
+      <Field
+        label="scope"
+        error={errors.scope?.message}
+        hint={
+          scopeHint
+            ? `참고: GitHub 협업자 수 기준 추정값 = ${scopeHint} (자동 선택 아님) · 혼자 진행했다면 personal, 함께 했다면 team`
+            : "혼자 진행한 프로젝트면 personal, 팀 프로젝트면 team을 선택하세요"
+        }
+      >
         <select {...register("scope")} className={inputClass}>
           <option value="personal">personal</option>
           <option value="team">team</option>
         </select>
-        {scopeHint && (
-          <p className="mt-1 text-xs text-black/40 dark:text-white/40">
-            참고: GitHub 협업자 수 기준 추정값 = {scopeHint} (자동 선택 아님)
-          </p>
-        )}
       </Field>
 
       {scope === "team" && (
-        <Field label="role" error={errors.role?.message}>
-          <input {...register("role")} className={inputClass} placeholder="scope: team 프로젝트는 필수" />
+        <Field label="role" error={errors.role?.message} hint="team 프로젝트는 필수 입력이에요">
+          <input {...register("role")} className={inputClass} placeholder="예: 백엔드 개발 및 배포 자동화 담당" />
         </Field>
       )}
 
       <Field label="period" error={errors.period?.message}>
-        <input {...register("period")} className={inputClass} placeholder="YYYY.MM ~ YYYY.MM" />
+        <input {...register("period")} className={inputClass} placeholder="예: 2026.01 ~ 2026.03" />
       </Field>
 
       <Field label="stack (콤마로 구분)" error={errors.stackText?.message}>
-        <input {...register("stackText")} className={inputClass} placeholder="Next.js, TypeScript" />
+        <input {...register("stackText")} className={inputClass} placeholder="예: Next.js, TypeScript, Tailwind CSS" />
       </Field>
 
-      <Field label="summary" error={errors.summary?.message}>
-        <textarea {...register("summary")} rows={3} className={inputClass} />
+      <Field label="summary" error={errors.summary?.message} hint="프로젝트 카드에 보여줄 1~2문장 요약이에요">
+        <textarea
+          {...register("summary")}
+          rows={3}
+          className={inputClass}
+          placeholder="예: GitHub 활동을 분석해 velog 초안과 포트폴리오 카드를 자동 생성하는 개인 자동화 파이프라인"
+        />
       </Field>
 
       <Field label="github" error={errors.github?.message}>
-        <input {...register("github")} className={inputClass} placeholder="https://github.com/owner/repo" />
+        <input {...register("github")} className={inputClass} placeholder="예: https://github.com/mygithub05253/stock-agent" />
       </Field>
 
-      <Field label="repoVisibility" error={errors.repoVisibility?.message}>
+      <Field
+        label="repoVisibility"
+        error={errors.repoVisibility?.message}
+        hint="Private으로 설정하면 사이트에 GitHub 버튼이 노출되지 않아요"
+      >
         <select {...register("repoVisibility")} className={inputClass}>
           <option value="public">public</option>
           <option value="private">private</option>
@@ -239,11 +267,15 @@ export function ProjectForm({
       </Field>
 
       <Field label="demo" error={errors.demo?.message}>
-        <input {...register("demo")} className={inputClass} />
+        <input {...register("demo")} className={inputClass} placeholder="예: https://my-profile-site-coral.vercel.app (배포 주소가 있을 때만)" />
       </Field>
 
-      <Field label="thumbnail 경로" error={errors.thumbnail?.message}>
-        <input {...register("thumbnail")} className={inputClass} placeholder="assets/{slug}/thumb.webp" />
+      <Field
+        label="thumbnail 경로"
+        error={errors.thumbnail?.message}
+        hint="이미지 업로드 기능은 준비 중이에요 — 지금은 content-hub에 미리 올려둔 이미지의 경로만 입력할 수 있어요"
+      >
+        <input {...register("thumbnail")} className={inputClass} placeholder="예: assets/automation-ecosystem/thumb.webp" />
       </Field>
 
       <div className="flex items-center gap-6">
@@ -254,8 +286,11 @@ export function ProjectForm({
           <input type="number" {...register("order", { valueAsNumber: true })} className={inputClass} />
         </Field>
       </div>
+      <p className="-mt-3 text-xs text-black/40 dark:text-white/40">
+        featured를 체크하면 홈 화면 상단에 노출돼요. order는 숫자가 작을수록 먼저 표시돼요 (예: 0, 1, 2 …)
+      </p>
 
-      <Field label="status" error={errors.status?.message}>
+      <Field label="status" error={errors.status?.message} hint="draft는 사이트에 보이지 않고, published여야 실제로 노출돼요">
         <select {...register("status")} className={inputClass}>
           <option value="draft">draft</option>
           <option value="published">published</option>
@@ -289,11 +324,22 @@ export function ProjectForm({
   );
 }
 
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+function Field({
+  label,
+  error,
+  hint,
+  children,
+}: {
+  label: string;
+  error?: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div>
       <label className="mb-1 block text-sm font-medium">{label}</label>
       {children}
+      {hint && !error && <p className="mt-1 text-xs text-black/40 dark:text-white/40">{hint}</p>}
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
   );
