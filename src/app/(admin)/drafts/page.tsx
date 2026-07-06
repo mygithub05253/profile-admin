@@ -1,9 +1,18 @@
-// A-04 초안 관리 (FR-M19, P1) — 오늘 세션 범위 밖, 자리만 확보
-export default function DraftsPage() {
+import { listDrafts } from "@/lib/drafts";
+import { DraftsTable } from "@/components/DraftsTable";
+
+export const dynamic = "force-dynamic";
+
+// A-04 초안 관리 목록 (FR-M19)
+export default async function DraftsPage() {
+  const drafts = await listDrafts();
+
   return (
     <div>
-      <h1 className="mb-2 text-lg font-semibold">Drafts</h1>
-      <p className="text-sm text-black/50 dark:text-white/50">FR-M19 (P1) 준비 중입니다.</p>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-lg font-semibold">Drafts ({drafts.length})</h1>
+      </div>
+      <DraftsTable drafts={drafts} />
     </div>
   );
 }
