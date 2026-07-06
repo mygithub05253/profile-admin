@@ -4,3 +4,5 @@ export const CONTENT_HUB_REPO = "content-hub";
 export const BASE_BRANCH = "main";
 
 export const PROJECTS_DIR = "projects";
+export const DRAFTS_DIR = "drafts";
+export const POSTS_DIR = "posts";
