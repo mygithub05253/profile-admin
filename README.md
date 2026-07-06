@@ -28,9 +28,9 @@
 | FR-M20 | 발행 대시보드(`/dashboard`) — 워크플로 실행 이력 시각화, 글 상태 매트릭스, admin PR 상태 |
 | FR-M21 | sha 낙관적 잠금 — 충돌 시 재조회+백오프 재시도 후 diff 안내 |
 | FR-M22 | 이미지 업로드 — 클라이언트 리사이즈·WebP 압축·5MB 가드, 본문·frontmatter와 단일 커밋 |
+| FR-M23 | 정적 데이터 편집(`/data`) — profile·stacks·records `data/*.yml`을 스키마 기반 폼(행 추가/삭제)으로 편집 |
+| FR-M24 | GitHub README 이미지 자동 추출·채택 — 프로젝트 폼에서 README 이미지 갤러리로 바로 채택 |
 | A-06 | UX/제품 품질 평가 추적(`/evaluation`) — 점수 추이 차트, 발견사항 테이블 |
-
-FR-M23(정적 데이터 편집)만 아직 미구현.
 
 ## 환경변수
 
