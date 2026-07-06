@@ -6,3 +6,7 @@ export const BASE_BRANCH = "main";
 export const PROJECTS_DIR = "projects";
 export const DRAFTS_DIR = "drafts";
 export const POSTS_DIR = "posts";
+
+// 프로필 README 레포 (blog-post.yml 워크플로 조회용, FR-M20 §20)
+export const PROFILE_README_OWNER = "mygithub05253";
+export const PROFILE_README_REPO = "mygithub05253";
