@@ -10,6 +10,7 @@ import {
 } from "@/lib/schema/project";
 import { DeleteProjectButton } from "./DeleteProjectButton";
 import { ImageDropzone, type StagedImage } from "./ImageDropzone";
+import { ReadmeImageGallery } from "./ReadmeImageGallery";
 
 interface ProjectFormProps {
   mode: "create" | "edit";
@@ -86,6 +87,7 @@ export function ProjectForm({
 
   const scope = watch("scope");
   const slugValue = watch("slug");
+  const githubValue = watch("github");
 
   // FR-M22: 이미지 드롭존의 "본문에 삽입" — textarea 커서 위치에 마크다운 스니펫 삽입
   function insertAtCursor(snippet: string) {
@@ -331,6 +333,12 @@ export function ProjectForm({
           className={`${inputClass} font-mono text-xs`}
         />
       </Field>
+
+      <ReadmeImageGallery
+        github={githubValue}
+        slug={slugValue}
+        onAdopt={(image) => setImages((prev) => [...prev, image])}
+      />
 
       <Field label="이미지 업로드">
         <ImageDropzone slug={slugValue} images={images} onChange={setImages} onInsert={insertAtCursor} />
