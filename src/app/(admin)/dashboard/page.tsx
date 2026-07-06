@@ -1,4 +1,6 @@
 import { listAdminPullRequests, listPostsStatusMatrix, listRecentWorkflowRuns } from "@/lib/dashboard";
+import { StackedBarChart } from "@/components/StackedBarChart";
+import { StatusBadge, statusDotClass } from "@/components/StatusBadge";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +24,14 @@ const PR_STATE_LABELS: Record<string, string> = {
   closed: "닫힘(미병합)",
 };
 
-// A-05 발행 대시보드 (FR-M20, P2)
+const STATUS_COLORS: Record<string, string> = {
+  draft: "bg-black/25 dark:bg-white/25",
+  ready: "bg-amber-500",
+  published: "bg-green-500",
+  synced: "bg-green-600",
+};
+
+// A-05 발행 대시보드 (FR-M20, P2) — 요약 카드·상태 분포 차트·실행 이력 스트립으로 시각화 (세션 13 개선)
 export default async function DashboardPage() {
   const [runs, posts, prs] = await Promise.all([
     listRecentWorkflowRuns(),
@@ -32,46 +41,81 @@ export default async function DashboardPage() {
 
   const workflows = Object.keys(WORKFLOW_LABELS);
 
+  const exposedCount = posts.filter((p) => p.siteExposed).length;
+  const velogCount = posts.filter((p) => p.hasVelogUrl).length;
+  const completedRuns = runs.filter((r) => r.status === "completed" && r.conclusion);
+  const successRuns = completedRuns.filter((r) => r.conclusion === "success");
+  const successRate = completedRuns.length > 0 ? Math.round((successRuns.length / completedRuns.length) * 100) : null;
+
+  const statusCounts = ["draft", "ready", "published", "synced"].map((status) => ({
+    label: status,
+    count: posts.filter((p) => p.status === status).length,
+    colorClass: STATUS_COLORS[status],
+  }));
+
   return (
     <div className="grid gap-8">
       <section>
         <h1 className="mb-4 text-lg font-semibold">Dashboard</h1>
+        <div className="grid gap-4 sm:grid-cols-4">
+          <StatCard label="총 글" value={`${posts.length}개`} />
+          <StatCard label="사이트 노출" value={`${exposedCount}개`} sub={ratioText(exposedCount, posts.length)} />
+          <StatCard label="velog 발행 완료" value={`${velogCount}개`} sub={ratioText(velogCount, posts.length)} />
+          <StatCard
+            label="최근 워크플로 성공률"
+            value={successRate === null ? "-" : `${successRate}%`}
+            sub={`최근 ${completedRuns.length}건 기준`}
+          />
+        </div>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-sm font-semibold">워크플로 실행 이력</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           {workflows.map((workflow) => {
             const workflowRuns = runs.filter((run) => run.workflow === workflow);
+            const latest = workflowRuns[0];
+            const history = [...workflowRuns].reverse(); // 왼쪽=과거, 오른쪽=최신
+
             return (
               <div key={workflow} className="rounded-lg border border-black/10 p-4 dark:border-white/15">
-                <h2 className="mb-3 text-sm font-semibold">{WORKFLOW_LABELS[workflow]}</h2>
-                <ul className="flex flex-col gap-2 text-xs">
-                  {workflowRuns.map((run) => (
-                    <li key={run.htmlUrl} className="flex items-center justify-between gap-2">
-                      <span
-                        className={
-                          run.conclusion === "failure"
-                            ? "font-medium text-red-500"
-                            : "text-black/60 dark:text-white/60"
-                        }
-                      >
-                        {run.status === "completed"
-                          ? (CONCLUSION_LABELS[run.conclusion ?? ""] ?? run.conclusion)
-                          : "진행 중"}
-                      </span>
-                      <span className="text-black/40 dark:text-white/40">
-                        {new Date(run.createdAt).toLocaleString("ko-KR")}
-                      </span>
-                      <a href={run.htmlUrl} target="_blank" rel="noreferrer" className="shrink-0 underline">
-                        로그
-                      </a>
-                    </li>
+                <h3 className="mb-2 text-sm font-semibold">{WORKFLOW_LABELS[workflow]}</h3>
+
+                {latest ? (
+                  <div className="mb-3 flex items-center gap-2">
+                    <StatusBadge
+                      label={latest.status === "completed" ? (CONCLUSION_LABELS[latest.conclusion ?? ""] ?? latest.conclusion ?? "-") : "진행 중"}
+                      tone={latest.status === "completed" ? (latest.conclusion ?? "unknown") : "in_progress"}
+                    />
+                    <span className="text-xs text-black/40 dark:text-white/40">
+                      {new Date(latest.createdAt).toLocaleString("ko-KR")}
+                    </span>
+                  </div>
+                ) : (
+                  <p className="mb-3 text-xs text-black/40 dark:text-white/40">실행 이력 없음</p>
+                )}
+
+                <div className="flex gap-1">
+                  {history.map((run) => (
+                    <a
+                      key={run.htmlUrl}
+                      href={run.htmlUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      title={`#${run.runNumber} · ${run.conclusion ?? run.status} · ${new Date(run.createdAt).toLocaleString("ko-KR")}`}
+                      className={`block h-4 w-4 shrink-0 rounded-sm ${statusDotClass(run.status === "completed" ? (run.conclusion ?? "unknown") : "in_progress")}`}
+                    />
                   ))}
-                  {workflowRuns.length === 0 && (
-                    <li className="text-black/40 dark:text-white/40">실행 이력 없음</li>
-                  )}
-                </ul>
+                </div>
               </div>
             );
           })}
         </div>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-sm font-semibold">글 상태 분포</h2>
+        <StackedBarChart segments={statusCounts} />
       </section>
 
       <section>
@@ -89,7 +133,9 @@ export default async function DashboardPage() {
             {posts.map((post) => (
               <tr key={post.slug} className="border-b border-black/5 dark:border-white/10">
                 <td className="py-2">{post.title}</td>
-                <td className="py-2">{post.status}</td>
+                <td className="py-2">
+                  <StatusBadge label={post.status} tone={post.status} />
+                </td>
                 <td className="py-2">{post.hasVelogUrl ? "O" : "-"}</td>
                 <td className="py-2">{post.siteExposed ? "O" : "-"}</td>
               </tr>
@@ -125,7 +171,9 @@ export default async function DashboardPage() {
                   </a>
                 </td>
                 <td className="py-2 text-black/50 dark:text-white/50">{pr.branch}</td>
-                <td className="py-2">{PR_STATE_LABELS[pr.state]}</td>
+                <td className="py-2">
+                  <StatusBadge label={PR_STATE_LABELS[pr.state]} tone={pr.state} />
+                </td>
                 <td className="py-2 text-black/50 dark:text-white/50">
                   {new Date(pr.createdAt).toLocaleDateString("ko-KR")}
                 </td>
@@ -141,6 +189,21 @@ export default async function DashboardPage() {
           </tbody>
         </table>
       </section>
+    </div>
+  );
+}
+
+function ratioText(count: number, total: number): string {
+  if (total === 0) return "0%";
+  return `${Math.round((count / total) * 100)}%`;
+}
+
+function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-lg border border-black/10 p-4 dark:border-white/15">
+      <p className="text-xs text-black/50 dark:text-white/50">{label}</p>
+      <p className="mt-1 text-2xl font-semibold">{value}</p>
+      {sub && <p className="mt-0.5 text-xs text-black/40 dark:text-white/40">{sub}</p>}
     </div>
   );
 }
