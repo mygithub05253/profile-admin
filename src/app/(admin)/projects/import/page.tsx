@@ -33,13 +33,16 @@ export default function ImportProjectPage() {
   return (
     <div className="max-w-md">
       <h1 className="mb-6 text-lg font-semibold">GitHub에서 가져오기</h1>
-      <label className="mb-1 block text-sm font-medium">저장소 (owner/repo)</label>
+      <label className="mb-1 block text-sm font-medium">저장소</label>
       <input
         value={repo}
         onChange={(e) => setRepo(e.target.value)}
-        placeholder="mygithub05253/content-hub"
+        placeholder="owner/repo 또는 https://github.com/owner/repo"
         className="mb-3 w-full rounded-md border border-black/15 bg-transparent px-3 py-2 text-sm dark:border-white/20"
       />
+      <p className="mb-3 text-xs text-black/40 dark:text-white/40">
+        GitHub 주소창/클론 버튼에서 복사한 URL을 그대로 붙여넣어도 됩니다 (.git 포함 여부 무관)
+      </p>
       {error && <p className="mb-3 text-xs text-red-500">{error}</p>}
       <button
         type="button"
