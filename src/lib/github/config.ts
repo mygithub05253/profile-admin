@@ -6,6 +6,11 @@ export const BASE_BRANCH = "main";
 export const PROJECTS_DIR = "projects";
 export const DRAFTS_DIR = "drafts";
 export const POSTS_DIR = "posts";
+export const ASSETS_DIR = "assets";
+
+// FR-M22 이미지 업로드 가드 (관리자 기능명세서 §22 — R-3)
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+export const MAX_IMAGES_PER_SAVE = 12;
 
 // 프로필 README 레포 (blog-post.yml 워크플로 조회용, FR-M20 §20)
 export const PROFILE_README_OWNER = "mygithub05253";

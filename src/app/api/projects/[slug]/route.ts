@@ -26,8 +26,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { slug } = await params;
     const json = await request.json();
-    const { frontmatter, body, sha } = projectSaveSchema.extend({ sha: z.string() }).parse(json);
-    const { prUrl } = await updateProject(slug, frontmatter, body, sha);
+    const { frontmatter, body, sha, images } = projectSaveSchema.extend({ sha: z.string() }).parse(json);
+    const { prUrl } = await updateProject(slug, frontmatter, body, sha, images);
     return NextResponse.json({ prUrl });
   } catch (err) {
     return toErrorResponse(err);
