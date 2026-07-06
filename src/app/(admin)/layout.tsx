@@ -23,6 +23,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <Link href="/evaluation" className="rounded-md px-2 py-1.5 hover:bg-black/5 dark:hover:bg-white/10">
             Evaluation
           </Link>
+          <Link href="/data" className="rounded-md px-2 py-1.5 hover:bg-black/5 dark:hover:bg-white/10">
+            Data
+          </Link>
         </nav>
       </aside>
       <div className="flex flex-1 flex-col">

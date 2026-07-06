@@ -18,3 +18,8 @@ export const PROFILE_README_REPO = "mygithub05253";
 
 // UX/제품 품질 평가 이력 (신규, 세션 13 사용자 요청) — 읽기 전용, my-profile-site는 미참조
 export const UX_SCORES_PATH = "data/ux-scores.yml";
+
+// FR-M23 정적 데이터 편집 (관리자 기능명세서 §23 — D-1 (c))
+export const PROFILE_DATA_PATH = "data/profile.yml";
+export const STACKS_DATA_PATH = "data/stacks.yml";
+export const RECORDS_DATA_PATH = "data/records.yml";
