@@ -34,11 +34,14 @@ const LANGUAGE_STACK_MAP: Record<string, string> = {
 };
 
 // GitHub 레포 메타데이터 조회 → projects 폼 프리필 (FR-M10 §10 Step 5, 읽기 전용)
-export async function importFromGithubRepo(ownerRepo: string): Promise<GithubImportResult> {
-  const [owner, repo] = ownerRepo.split("/");
-  if (!owner || !repo) {
-    throw new RepoNotFoundError(`저장소 형식이 올바르지 않습니다 (owner/repo 형태 필요): ${ownerRepo}`);
+export async function importFromGithubRepo(input: string): Promise<GithubImportResult> {
+  const parsed = parseOwnerRepo(input);
+  if (!parsed) {
+    throw new RepoNotFoundError(
+      `저장소 형식이 올바르지 않습니다 (owner/repo 또는 GitHub URL 형태 필요): ${input}`
+    );
   }
+  const { owner, repo } = parsed;
 
   const octokit = getOctokit();
 
@@ -48,7 +51,7 @@ export async function importFromGithubRepo(ownerRepo: string): Promise<GithubImp
       return data;
     } catch (err) {
       if ((err as { status?: number }).status === 404) {
-        throw new RepoNotFoundError(`레포를 찾을 수 없습니다: ${ownerRepo}`);
+        throw new RepoNotFoundError(`레포를 찾을 수 없습니다: ${owner}/${repo}`);
       }
       throw err;
     }
@@ -112,6 +115,23 @@ function extractFirstParagraphAfterHeading(markdown: string): string | undefined
   if (headingIndex === -1) return undefined;
   const paragraph = tree.children.slice(headingIndex + 1).find((node) => node.type === "paragraph");
   return paragraph ? mdastToString(paragraph).trim() : undefined;
+}
+
+// "owner/repo" 뿐 아니라 브라우저 주소창/클론 버튼에서 그대로 복사한 값도 받아들인다
+// (https://github.com/owner/repo, .git 접미, git@github.com:owner/repo.git, 트레일링 슬래시 등)
+function parseOwnerRepo(input: string): { owner: string; repo: string } | null {
+  const trimmed = input.trim();
+
+  const ssh = trimmed.match(/^git@github\.com:([^/]+)\/([^/]+?)(?:\.git)?\/?$/);
+  if (ssh) return { owner: ssh[1], repo: ssh[2] };
+
+  const https = trimmed.match(/^https?:\/\/(?:www\.)?github\.com\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/);
+  if (https) return { owner: https[1], repo: https[2] };
+
+  const plain = trimmed.match(/^([^/\s]+)\/([^/\s]+?)(?:\.git)?\/?$/);
+  if (plain) return { owner: plain[1], repo: plain[2] };
+
+  return null;
 }
 
 function toKebabSlug(name: string): string {
