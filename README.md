@@ -20,12 +20,17 @@
 
 | 기능 | 설명 |
 |------|------|
+| FR-M9 | 등록 레포의 완성 신호(topics `portfolio-ready`) 수신 → content-hub가 velog 초안 자동 생성 (연동 대상) |
 | FR-M16 | GitHub OAuth 로그인 + 숫자 ID allowlist 3중 방어(signIn/jwt·session/미들웨어) |
 | FR-M17/M18 | 프로젝트 CRUD — 브랜치 커밋 → PR → auto-merge, zod 즉시 검증 |
-| FR-M21 | sha 낙관적 잠금 — 충돌 시 재조회+백오프 재시도 후 diff 안내 |
 | FR-M10 | GitHub 레포 지정 → 메타데이터 조회 → 프로젝트 폼 프리필(읽기 전용, 저장은 FR-M17 경로 재사용) |
+| FR-M19 | 블로그 초안 관리(`/drafts`) — 편집·발행 준비(drafts→posts 이동, velog 자동 발행 트리거) |
+| FR-M20 | 발행 대시보드(`/dashboard`) — 워크플로 실행 이력 시각화, 글 상태 매트릭스, admin PR 상태 |
+| FR-M21 | sha 낙관적 잠금 — 충돌 시 재조회+백오프 재시도 후 diff 안내 |
+| FR-M22 | 이미지 업로드 — 클라이언트 리사이즈·WebP 압축·5MB 가드, 본문·frontmatter와 단일 커밋 |
+| A-06 | UX/제품 품질 평가 추적(`/evaluation`) — 점수 추이 차트, 발견사항 테이블 |
 
-FR-M19(초안 관리)·FR-M20(대시보드)·FR-M22(이미지 업로드)·FR-M23(정적 데이터 편집)은 아직 미구현.
+FR-M23(정적 데이터 편집)만 아직 미구현.
 
 ## 환경변수
 
