@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { compressImageBlob, blobToBase64, sanitizeBaseName, MAX_BYTES } from "@/lib/image-compress";
 
 export interface StagedImage {
   filename: string; // content-hub 파일명 (경로 아님, 예: diagram-a1b2c3.webp)
@@ -15,47 +16,6 @@ interface ImageDropzoneProps {
   images: StagedImage[];
   onChange: (images: StagedImage[]) => void;
   onInsert: (snippet: string) => void; // 본문 커서 위치에 마크다운 스니펫 삽입
-}
-
-const MAX_WIDTH = 1600; // §22: 클라이언트 측 리사이즈 최대 폭
-const MAX_BYTES = 5 * 1024 * 1024; // §22: 압축 후 5MB 가드 (서버 MAX_IMAGE_BYTES와 동일)
-const WEBP_QUALITY = 0.82;
-
-function sanitizeBaseName(name: string): string {
-  const base = name.replace(/\.[^.]+$/, "");
-  const slug = base
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return slug || "image";
-}
-
-async function compressImage(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, MAX_WIDTH / bitmap.width);
-  const width = Math.max(1, Math.round(bitmap.width * scale));
-  const height = Math.max(1, Math.round(bitmap.height * scale));
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("캔버스를 초기화할 수 없습니다");
-  ctx.drawImage(bitmap, 0, 0, width, height);
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("WebP 변환에 실패했습니다"))), "image/webp", WEBP_QUALITY);
-  });
-}
-
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result as string;
-      resolve(result.slice(result.indexOf(",") + 1));
-    };
-    reader.onerror = () => reject(new Error("파일을 읽지 못했습니다"));
-    reader.readAsDataURL(blob);
-  });
 }
 
 // A-03 이미지 업로드 드롭존 (FR-M22) — 리사이즈·WebP 변환·5MB 가드는 여기서 끝내고
@@ -85,7 +45,7 @@ export function ImageDropzone({ slug, images, onChange, onInsert }: ImageDropzon
             setError(`${file.name}: 이미지 파일이 아닙니다`);
             continue;
           }
-          const blob = await compressImage(file);
+          const blob = await compressImageBlob(file);
           if (blob.size > MAX_BYTES) {
             setError(`${file.name}: 압축 후에도 5MB를 초과합니다 (${(blob.size / 1024 / 1024).toFixed(1)}MB)`);
             continue;
