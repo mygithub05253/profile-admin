@@ -5,10 +5,13 @@ const TONE_CLASS: Record<string, string> = {
   synced: "bg-green-500/15 text-green-600 dark:text-green-400",
   merged: "bg-green-500/15 text-green-600 dark:text-green-400",
   failure: "bg-red-500/15 text-red-600 dark:text-red-400",
+  high: "bg-red-500/15 text-red-600 dark:text-red-400",
   action_required: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
   ready: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+  medium: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
   in_progress: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
   open: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+  resolved: "bg-green-500/15 text-green-600 dark:text-green-400",
 };
 
 const DEFAULT_TONE_CLASS = "bg-black/10 text-black/50 dark:bg-white/10 dark:text-white/50";

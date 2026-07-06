@@ -10,3 +10,6 @@ export const POSTS_DIR = "posts";
 // 프로필 README 레포 (blog-post.yml 워크플로 조회용, FR-M20 §20)
 export const PROFILE_README_OWNER = "mygithub05253";
 export const PROFILE_README_REPO = "mygithub05253";
+
+// UX/제품 품질 평가 이력 (신규, 세션 13 사용자 요청) — 읽기 전용, my-profile-site는 미참조
+export const UX_SCORES_PATH = "data/ux-scores.yml";
