@@ -25,7 +25,7 @@ const WATCHED_WORKFLOWS = [
   { owner: PROFILE_README_OWNER, repo: PROFILE_README_REPO, workflowId: "blog-post.yml", label: "blog-post" },
 ] as const;
 
-const RUNS_PER_WORKFLOW = 3;
+const RUNS_PER_WORKFLOW = 8; // 실행 이력 스트립 시각화용 (FR-M20 개선, 세션 13)
 
 // 워크플로 3종 최근 실행 이력 (FR-M20, A-05 상단 카드)
 export async function listRecentWorkflowRuns(): Promise<WorkflowRunSummary[]> {
