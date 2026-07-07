@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "verify": "node scripts/verify-content-analytics.mjs"
+    "verify": "node scripts/verify-content-analytics.mjs && node scripts/verify-pagination.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
