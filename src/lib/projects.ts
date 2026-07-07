@@ -77,10 +77,11 @@ export async function listProjects(): Promise<ProjectListItem[]> {
       return {
         slug: fm.slug,
         title: fm.title,
-        category: fm.category,
+        category: Array.isArray(fm.category) ? fm.category : [],
         scope: fm.scope,
         status: fm.status,
         featured: fm.featured,
+        stack: Array.isArray(fm.stack) ? fm.stack : [],
         updatedAt: commits[0]?.commit.committer?.date ?? "",
       } satisfies ProjectListItem;
     })

@@ -71,5 +71,6 @@ export interface ProjectListItem {
   scope: string;
   status: string;
   featured: boolean;
+  stack: string[];
   updatedAt: string;
 }
