@@ -77,7 +77,7 @@ export async function listProjects(): Promise<ProjectListItem[]> {
       return {
         slug: fm.slug,
         title: fm.title,
-        category: fm.category,
+        category: Array.isArray(fm.category) ? fm.category : [],
         scope: fm.scope,
         status: fm.status,
         featured: fm.featured,

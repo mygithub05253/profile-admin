@@ -75,6 +75,21 @@ assert.deepEqual(
   ["b", "c"]
 );
 
+// 회귀 테스트: projects.ts의 `Array.isArray(fm.category) ? fm.category : []` 방어가
+// 제거되면 category가 undefined/비배열로 들어올 수 있음 — 그 경우에도
+// buildProjectAnalytics의 for...of가 즉시 크래시하지 않는지 문서화.
+// (실제 방어는 projects.ts 경계에서 처리하는 것이 맞고, 이 케이스는
+// ProjectListItem 타입 계약이 깨졌을 때의 실제 크래시 지점을 보여주는 용도)
+try {
+  buildProjectAnalytics([{ ...projects[0], category: undefined }]);
+  assert.fail("category가 undefined일 때 buildProjectAnalytics가 예외 없이 통과함 — projects.ts 방어가 없으면 대시보드가 크래시함을 의미");
+} catch (err) {
+  assert.ok(
+    err instanceof TypeError,
+    `예상치 못한 에러 타입: ${err}`
+  );
+}
+
 const records = {
   intro: {
     badge: "x",
