@@ -1,5 +1,5 @@
 import { StatCard } from "./StatCard";
-import { SectionErrorNotice } from "./SectionErrorNotice";
+import { AnalyticsError } from "./AnalyticsStatus";
 import { StackedBarChart } from "./StackedBarChart";
 import { ProjectStatusFilterTable } from "./ProjectStatusFilterTable";
 import type { CategoryCount, ProjectAnalytics, RecordsAnalytics, StackAnalytics } from "@/lib/content-analytics";
@@ -77,8 +77,8 @@ export function ContentAnalyticsSection({
     <div className="grid gap-8">
       <section>
         <h2 className="mb-3 text-sm font-semibold">① 포트폴리오 균형</h2>
-        {stacksFailed && <SectionErrorNotice label="스택" />}
-        {projectsFailed && <SectionErrorNotice label="프로젝트" />}
+        {stacksFailed && <AnalyticsError label="스택" />}
+        {projectsFailed && <AnalyticsError label="프로젝트" />}
         {stackAnalytics ? (
           <div className="grid gap-6">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -150,7 +150,7 @@ export function ContentAnalyticsSection({
 
       <section>
         <h2 className="mb-3 text-sm font-semibold">③ 성장 추이</h2>
-        {recordsFailed && <SectionErrorNotice label="Records" />}
+        {recordsFailed && <AnalyticsError label="Records" />}
         {recordsAnalytics ? (
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
