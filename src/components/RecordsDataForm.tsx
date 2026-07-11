@@ -118,7 +118,7 @@ export function RecordsDataForm({ initialData, initialSha }: RecordsDataFormProp
         <div className="grid gap-3">
           {loop.fields.map((field, index) => (
             <div key={field.id} className="flex items-start gap-2 rounded-md border border-black/10 p-3 dark:border-white/15">
-              <div className="grid flex-1 grid-cols-2 gap-2">
+              <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-2">
                 <Field label="label" error={errors.intro?.loop?.[index]?.label?.message}>
                   <input {...register(`intro.loop.${index}.label`)} className={inputClass} />
                 </Field>
@@ -146,7 +146,7 @@ export function RecordsDataForm({ initialData, initialSha }: RecordsDataFormProp
         <div className="grid gap-3">
           {items.fields.map((field, index) => (
             <div key={field.id} className="rounded-md border border-black/10 p-3 dark:border-white/15">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <Field label="date" error={errors.items?.[index]?.date?.message} hint="예: 2024.03 ~ 또는 2025">
                   <input {...register(`items.${index}.date`)} className={inputClass} />
                 </Field>
