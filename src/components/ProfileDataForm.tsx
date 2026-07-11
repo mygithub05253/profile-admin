@@ -120,7 +120,7 @@ export function ProfileDataForm({ initialData, initialSha }: ProfileDataFormProp
         <div className="grid gap-3">
           {emails.fields.map((field, index) => (
             <div key={field.id} className="flex items-start gap-2 rounded-md border border-black/10 p-3 dark:border-white/15">
-              <div className="grid flex-1 grid-cols-2 gap-2">
+              <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-2">
                 <Field label="label" error={errors.emails?.[index]?.label?.message}>
                   <input {...register(`emails.${index}.label`)} className={inputClass} />
                 </Field>
@@ -152,7 +152,7 @@ export function ProfileDataForm({ initialData, initialSha }: ProfileDataFormProp
         <div className="grid gap-3">
           {highlights.fields.map((field, index) => (
             <div key={field.id} className="rounded-md border border-black/10 p-3 dark:border-white/15">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <Field label="icon" error={errors.highlights?.[index]?.icon?.message} hint="이모지 1개">
                   <input {...register(`highlights.${index}.icon`)} className={inputClass} />
                 </Field>

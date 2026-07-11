@@ -1,13 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { DraftListItem } from "@/lib/schema/post";
+import { DataTable, type DataTableColumn } from "./DataTable";
+import { SearchBar } from "./SearchBar";
+import { Pagination } from "./Pagination";
+
+const PAGE_SIZE = 10;
 
 // A-04 초안 관리 목록 — 검색(제목)·필터(status) (관리자 UI 설계서 §5)
 export function DraftsTable({ drafts }: { drafts: DraftListItem[] }) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [page, setPage] = useState(0);
 
   const filtered = useMemo(() => {
     return drafts.filter((draft) => {
@@ -17,19 +23,39 @@ export function DraftsTable({ drafts }: { drafts: DraftListItem[] }) {
     });
   }, [drafts, query, statusFilter]);
 
+  useEffect(() => setPage(0), [query, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  const columns: DataTableColumn<DraftListItem>[] = [
+    {
+      key: "title",
+      header: "제목",
+      cell: (draft) => (
+        <Link href={`/drafts/${draft.slug}`} className="hover:underline">
+          {draft.title}
+        </Link>
+      ),
+    },
+    { key: "status", header: "status", cell: (draft) => draft.status },
+    { key: "source", header: "source", cell: (draft) => draft.source },
+    { key: "date", header: "date", cell: (draft) => draft.date },
+    {
+      key: "updatedAt",
+      header: "수정일",
+      cell: (draft) => (draft.updatedAt ? new Date(draft.updatedAt).toLocaleDateString("ko-KR") : "-"),
+    },
+  ];
+
   return (
     <div>
-      <div className="mb-4 flex gap-3">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="제목 검색"
-          className="rounded-md border border-black/15 bg-transparent px-3 py-1.5 text-sm dark:border-white/20"
-        />
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+        <SearchBar value={query} onChange={setQuery} placeholder="제목 검색" />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-md border border-black/15 bg-transparent px-3 py-1.5 text-sm dark:border-white/20"
+          className="rounded-md border border-input bg-background px-3 py-1.5 text-sm"
         >
           <option value="all">전체 status</option>
           <option value="draft">draft</option>
@@ -39,41 +65,8 @@ export function DraftsTable({ drafts }: { drafts: DraftListItem[] }) {
         </select>
       </div>
 
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-black/10 text-black/50 dark:border-white/15 dark:text-white/50">
-            <th className="py-2 font-normal">제목</th>
-            <th className="py-2 font-normal">status</th>
-            <th className="py-2 font-normal">source</th>
-            <th className="py-2 font-normal">date</th>
-            <th className="py-2 font-normal">수정일</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.map((draft) => (
-            <tr key={draft.slug} className="border-b border-black/5 dark:border-white/10">
-              <td className="py-2">
-                <Link href={`/drafts/${draft.slug}`} className="hover:underline">
-                  {draft.title}
-                </Link>
-              </td>
-              <td className="py-2">{draft.status}</td>
-              <td className="py-2">{draft.source}</td>
-              <td className="py-2">{draft.date}</td>
-              <td className="py-2 text-black/50 dark:text-white/50">
-                {draft.updatedAt ? new Date(draft.updatedAt).toLocaleDateString("ko-KR") : "-"}
-              </td>
-            </tr>
-          ))}
-          {filtered.length === 0 && (
-            <tr>
-              <td colSpan={5} className="py-6 text-center text-black/40 dark:text-white/40">
-                초안이 없습니다
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+      <DataTable columns={columns} data={paged} rowKey={(draft) => draft.slug} emptyState="초안이 없습니다" />
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }
