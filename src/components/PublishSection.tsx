@@ -1,5 +1,5 @@
 import { StatCard } from "./StatCard";
-import { SectionErrorNotice } from "./SectionErrorNotice";
+import { AnalyticsError } from "./AnalyticsStatus";
 import { StackedBarChart } from "./StackedBarChart";
 import { StatusBadge, statusDotClass } from "./StatusBadge";
 import type { AdminPrSummary, PostStatusRow, WorkflowRunSummary } from "@/lib/dashboard";
@@ -60,8 +60,8 @@ export function PublishSection({ runs, posts, prs, runsFailed, postsFailed, prsF
     <div className="grid gap-8">
       <section>
         <h1 className="mb-4 text-lg font-semibold">Dashboard</h1>
-        {postsFailed && <SectionErrorNotice label="글 상태" />}
-        {runsFailed && <SectionErrorNotice label="워크플로 실행 이력" />}
+        {postsFailed && <AnalyticsError label="글 상태" />}
+        {runsFailed && <AnalyticsError label="워크플로 실행 이력" />}
         <div className="mt-4 grid gap-4 sm:grid-cols-4">
           <StatCard label="총 글" value={`${posts.length}개`} />
           <StatCard label="사이트 노출" value={`${exposedCount}개`} sub={ratioText(exposedCount, posts.length)} />
@@ -162,7 +162,7 @@ export function PublishSection({ runs, posts, prs, runsFailed, postsFailed, prsF
 
       <section>
         <h2 className="mb-3 text-sm font-semibold">admin PR 이력 ({prs.length})</h2>
-        {prsFailed && <SectionErrorNotice label="admin PR 이력" />}
+        {prsFailed && <AnalyticsError label="admin PR 이력" />}
         <table className="mt-3 w-full text-left text-sm">
           <thead>
             <tr className="border-b border-black/10 text-black/50 dark:border-white/15 dark:text-white/50">

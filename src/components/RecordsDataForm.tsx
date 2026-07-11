@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useFieldArray, useForm, type FieldPath } from "react-hook-form";
 import { recordsDataSchema, recordCategoryEnum, type RecordsData } from "@/lib/schema/static-data";
 import { Field, inputClass } from "./Field";
+import toast from "react-hot-toast";
+import { toastApiError, toastSaved } from "@/lib/toast-errors";
 
 interface RecordsDataFormProps {
   initialData: RecordsData;
@@ -63,6 +65,7 @@ export function RecordsDataForm({ initialData, initialSha }: RecordsDataFormProp
       const json = await res.json();
 
       if (!res.ok) {
+        toastApiError(json);
         if (res.status === 409 && json.error === "sha_conflict") {
           setConflict(true);
           setStatus("error");
@@ -75,10 +78,13 @@ export function RecordsDataForm({ initialData, initialSha }: RecordsDataFormProp
 
       setPrUrl(json.prUrl);
       setStatus("done");
+      toastSaved();
       router.refresh();
     } catch {
-      setServerError("네트워크 오류로 저장하지 못했습니다. 다시 시도해주세요.");
+      const message = "네트워크 오류로 저장하지 못했습니다. 다시 시도해주세요.";
+      setServerError(message);
       setStatus("error");
+      toast.error(message);
     }
   });
 

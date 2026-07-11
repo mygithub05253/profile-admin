@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useFieldArray, useForm, type FieldPath } from "react-hook-form";
 import { profileDataSchema, type ProfileData } from "@/lib/schema/static-data";
 import { Field, inputClass } from "./Field";
+import toast from "react-hot-toast";
+import { toastApiError, toastSaved } from "@/lib/toast-errors";
 
 interface ProfileDataFormProps {
   initialData: ProfileData;
@@ -57,6 +59,7 @@ export function ProfileDataForm({ initialData, initialSha }: ProfileDataFormProp
       const json = await res.json();
 
       if (!res.ok) {
+        toastApiError(json);
         if (res.status === 409 && json.error === "sha_conflict") {
           setConflict(true);
           setStatus("error");
@@ -69,10 +72,13 @@ export function ProfileDataForm({ initialData, initialSha }: ProfileDataFormProp
 
       setPrUrl(json.prUrl);
       setStatus("done");
+      toastSaved();
       router.refresh();
     } catch {
-      setServerError("네트워크 오류로 저장하지 못했습니다. 다시 시도해주세요.");
+      const message = "네트워크 오류로 저장하지 못했습니다. 다시 시도해주세요.";
+      setServerError(message);
       setStatus("error");
+      toast.error(message);
     }
   });
 
