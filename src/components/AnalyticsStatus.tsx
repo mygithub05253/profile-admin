@@ -14,6 +14,7 @@ export function AnalyticsError({ label }: { label: string }) {
         {label} 데이터를 불러오지 못했습니다.
       </span>
       <button
+        type="button"
         onClick={() => router.refresh()}
         className="text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/80"
       >
