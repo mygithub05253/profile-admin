@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 export interface ChartSegment {
   label: string;
@@ -33,6 +33,7 @@ export function StackedBarChart({ segments }: { segments: ChartSegment[] }) {
       <ResponsiveContainer width="100%" height={160}>
         <BarChart data={data} layout="vertical" margin={{ left: 0, right: 8, top: 4, bottom: 4 }}>
           <XAxis type="number" hide />
+          <YAxis type="category" dataKey="name" hide />
           <Tooltip cursor={{ fill: "transparent" }} />
           <Bar dataKey="count" radius={4} barSize={20}>
             {data.map((d) => (
