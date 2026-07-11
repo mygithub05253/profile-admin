@@ -11,6 +11,8 @@ import {
 import { DeleteProjectButton } from "./DeleteProjectButton";
 import { ImageDropzone, type StagedImage } from "./ImageDropzone";
 import { ReadmeImageGallery } from "./ReadmeImageGallery";
+import toast from "react-hot-toast";
+import { toastApiError, toastSaved } from "@/lib/toast-errors";
 
 interface ProjectFormProps {
   mode: "create" | "edit";
@@ -165,6 +167,7 @@ export function ProjectForm({
       const json = await res.json();
 
       if (!res.ok) {
+        toastApiError(json);
         if (res.status === 409 && json.error === "sha_conflict") {
           setConflict({ sha: json.latest?.sha });
           setStatus("error");
@@ -177,10 +180,13 @@ export function ProjectForm({
 
       setPrUrl(json.prUrl);
       setStatus("done");
+      toastSaved();
       router.refresh();
     } catch {
-      setServerError("네트워크 오류로 저장하지 못했습니다. 다시 시도해주세요.");
+      const message = "네트워크 오류로 저장하지 못했습니다. 다시 시도해주세요.";
+      setServerError(message);
       setStatus("error");
+      toast.error(message);
     }
   });
 
