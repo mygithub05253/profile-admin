@@ -1,6 +1,7 @@
 import { listUxScoreHistory } from "@/lib/ux-scores";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ScoreTrendChart } from "@/components/ScoreTrendChart";
+import { DataTable, type DataTableColumn } from "@/components/DataTable";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,23 @@ export default async function EvaluationPage() {
   const findings = history
     .flatMap((entry) => entry.findings.map((finding) => ({ ...finding, date: entry.date })))
     .sort((a, b) => (a.status === b.status ? b.date.localeCompare(a.date) : a.status === "open" ? -1 : 1));
+
+  const columns: DataTableColumn<(typeof findings)[number]>[] = [
+    { key: "area", header: "영역", cell: (f) => f.area },
+    {
+      key: "severity",
+      header: "심각도",
+      cell: (f) => <StatusBadge label={SEVERITY_LABELS[f.severity] ?? f.severity} tone={f.severity} />,
+    },
+    { key: "issue", header: "이슈", cell: (f) => f.issue },
+    { key: "suggestion", header: "제안", cell: (f) => <span className="text-muted-foreground">{f.suggestion}</span> },
+    {
+      key: "status",
+      header: "상태",
+      cell: (f) => <StatusBadge label={FINDING_STATUS_LABELS[f.status] ?? f.status} tone={f.status} />,
+    },
+    { key: "date", header: "평가일", cell: (f) => <span className="text-muted-foreground">{f.date}</span> },
+  ];
 
   return (
     <div className="grid gap-8">
@@ -69,41 +87,12 @@ export default async function EvaluationPage() {
 
       <section>
         <h2 className="mb-3 text-sm font-semibold">발견사항 ({findings.length})</h2>
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-black/10 text-black/50 dark:border-white/15 dark:text-white/50">
-              <th className="py-2 font-normal">영역</th>
-              <th className="py-2 font-normal">심각도</th>
-              <th className="py-2 font-normal">이슈</th>
-              <th className="py-2 font-normal">제안</th>
-              <th className="py-2 font-normal">상태</th>
-              <th className="py-2 font-normal">평가일</th>
-            </tr>
-          </thead>
-          <tbody>
-            {findings.map((finding, i) => (
-              <tr key={`${finding.date}-${i}`} className="border-b border-black/5 align-top dark:border-white/10">
-                <td className="py-2">{finding.area}</td>
-                <td className="py-2">
-                  <StatusBadge label={SEVERITY_LABELS[finding.severity] ?? finding.severity} tone={finding.severity} />
-                </td>
-                <td className="py-2">{finding.issue}</td>
-                <td className="py-2 text-black/60 dark:text-white/60">{finding.suggestion}</td>
-                <td className="py-2">
-                  <StatusBadge label={FINDING_STATUS_LABELS[finding.status] ?? finding.status} tone={finding.status} />
-                </td>
-                <td className="py-2 text-black/40 dark:text-white/40">{finding.date}</td>
-              </tr>
-            ))}
-            {findings.length === 0 && (
-              <tr>
-                <td colSpan={6} className="py-6 text-center text-black/40 dark:text-white/40">
-                  발견사항이 없습니다
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <DataTable
+          columns={columns}
+          data={findings}
+          rowKey={(f, i) => `${f.date}-${i}`}
+          emptyState="발견사항이 없습니다"
+        />
       </section>
     </div>
   );
