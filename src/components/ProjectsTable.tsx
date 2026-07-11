@@ -1,13 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { ProjectListItem } from "@/lib/schema/project";
+import { DataTable, type DataTableColumn } from "./DataTable";
+import { SearchBar } from "./SearchBar";
+import { Pagination } from "./Pagination";
+
+const PAGE_SIZE = 10;
 
 // A-02 프로젝트 관리 목록 — 검색(제목)·필터(status/category) (관리자 UI 설계서 §3)
 export function ProjectsTable({ projects }: { projects: ProjectListItem[] }) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [page, setPage] = useState(0);
 
   const filtered = useMemo(() => {
     return projects.filter((project) => {
@@ -17,19 +23,41 @@ export function ProjectsTable({ projects }: { projects: ProjectListItem[] }) {
     });
   }, [projects, query, statusFilter]);
 
+  // 검색/필터가 바뀌면 이전 페이지가 범위를 벗어날 수 있으니 0으로 리셋
+  useEffect(() => setPage(0), [query, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  const columns: DataTableColumn<ProjectListItem>[] = [
+    {
+      key: "title",
+      header: "제목",
+      cell: (project) => (
+        <Link href={`/projects/${project.slug}`} className="hover:underline">
+          {project.title}
+        </Link>
+      ),
+    },
+    { key: "category", header: "category", cell: (project) => project.category.join(", ") },
+    { key: "scope", header: "scope", cell: (project) => project.scope },
+    { key: "status", header: "status", cell: (project) => project.status },
+    { key: "featured", header: "featured", cell: (project) => (project.featured ? "✓" : "") },
+    {
+      key: "updatedAt",
+      header: "수정일",
+      cell: (project) => (project.updatedAt ? new Date(project.updatedAt).toLocaleDateString("ko-KR") : "-"),
+    },
+  ];
+
   return (
     <div>
-      <div className="mb-4 flex gap-3">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="제목 검색"
-          className="rounded-md border border-black/15 bg-transparent px-3 py-1.5 text-sm dark:border-white/20"
-        />
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+        <SearchBar value={query} onChange={setQuery} placeholder="제목 검색" />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-md border border-black/15 bg-transparent px-3 py-1.5 text-sm dark:border-white/20"
+          className="rounded-md border border-input bg-background px-3 py-1.5 text-sm"
         >
           <option value="all">전체 status</option>
           <option value="draft">draft</option>
@@ -37,43 +65,13 @@ export function ProjectsTable({ projects }: { projects: ProjectListItem[] }) {
         </select>
       </div>
 
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-black/10 text-black/50 dark:border-white/15 dark:text-white/50">
-            <th className="py-2 font-normal">제목</th>
-            <th className="py-2 font-normal">category</th>
-            <th className="py-2 font-normal">scope</th>
-            <th className="py-2 font-normal">status</th>
-            <th className="py-2 font-normal">featured</th>
-            <th className="py-2 font-normal">수정일</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.map((project) => (
-            <tr key={project.slug} className="border-b border-black/5 dark:border-white/10">
-              <td className="py-2">
-                <Link href={`/projects/${project.slug}`} className="hover:underline">
-                  {project.title}
-                </Link>
-              </td>
-              <td className="py-2">{project.category.join(", ")}</td>
-              <td className="py-2">{project.scope}</td>
-              <td className="py-2">{project.status}</td>
-              <td className="py-2">{project.featured ? "✓" : ""}</td>
-              <td className="py-2 text-black/50 dark:text-white/50">
-                {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString("ko-KR") : "-"}
-              </td>
-            </tr>
-          ))}
-          {filtered.length === 0 && (
-            <tr>
-              <td colSpan={6} className="py-6 text-center text-black/40 dark:text-white/40">
-                결과 없음
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+      <DataTable
+        columns={columns}
+        data={paged}
+        rowKey={(project) => project.slug}
+        emptyState="결과 없음"
+      />
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }
